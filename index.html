@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김진율 멍청이</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="title-wrap">
+    <div class="title">
+     <h3>ver 1.0.0</h3>
+     <h5>　</h5>
+     <h5>1. 모델 불러오기</h5>
+     <h5>2. 카메라로 운동 모습(아래 참고) 사진찍기</h5>
+     <h5>3. 파일 선택 -> 사진 선택</h5>
+     <h5>4. 예측하기</h5>
+    </div>
+  </div>
+
+  <h3>　</h3>
+  
+  <script class="jsbin" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+  <div class="file-upload">
+    <button class="st" type="button" onclick="init()">모델불러오기</button>
+    <button class="pr" type="button" onclick="predict()">예측하기</button>
+    <h6></h6>
+    <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger( 'click' )">파일 선택</button>
+
+    
+    <div class="output">
+      <div id="label-container"></div>
+    </div>
+  </div>
+
+  <div id="webcam-container"></div>
+  <div id="label-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script>
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+          $('.image-upload-wrap').hide();
+
+          $('.file-upload-image').attr('src', e.target.result);
+          $('.file-upload-content').show();
+
+          $('.image-title').html(input.files[0].name);
+        };
+
+        reader.readAsDataURL(input.files[0]);
+
+      } else {
+        removeUpload();
+      }
+    }
+
+    function removeUpload() {
+      $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+      $('.file-upload-content').hide();
+      $('.image-upload-wrap').show();
+    }
+    $('.image-upload-wrap').bind('dragover', function () {
+      $('.image-upload-wrap').addClass('image-dropping');
+    });
+    $('.image-upload-wrap').bind('dragleave', function () {
+      $('.image-upload-wrap').removeClass('image-dropping');
+    });
+  </script>
+
+
+  <script type="text/javascript">
+    const URL = "https://teachablemachine.withgoogle.com/models/IDgwZe8om/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      const flip = true; // whether to flip the webcam
+      webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+      labelContainer = document.getElementById("label-container");
+      for (let i = 0; i < maxPredictions; i++) { // and class labels
+        labelContainer.appendChild(document.createElement("div"));
+      }
+    }
+
+    async function predict() {
+      var new_image = document.getElementById("input_image");
+      const prediction = await model.predict(new_image, false);
+
+      if (prediction[0].className == "버피" && prediction[0].probability.toFixed(2) > 0.7) {
+        labelContainer.childNodes[0].innerHTML = "버피 성공!"
+      }
+      else if (prediction[1].className == "러시안트위스트" && prediction[1].probability.toFixed(2) > 0.7) {
+        labelContainer.childNodes[0].innerHTML = "러시안 트위스트 성공!"
+      } 
+      else if (prediction[2].className == "점핑잭" && prediction[2].probability.toFixed(2) > 0.7) {
+        labelContainer.childNodes[0].innerHTML = "점핑잭 성공"
+      }
+      else {
+        labelContainer.childNodes[0].innerHTML = "다시!"
+      }
+    }
+  </script>
+</body>
+</html>
